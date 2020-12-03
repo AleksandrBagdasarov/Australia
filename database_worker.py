@@ -30,8 +30,8 @@ class DataBase:
         logger.info(f'Return QUERY: {classname}')
         return data
 
-    def get_rows(self, classname, row_limit):
-        logger.info(f'Start QUERY: {classname}')
-        data = self.session.query(classname).order_by(classname.id).limit(row_limit)
-        logger.info(f'Return QUERY: {classname}')
+    def get_rows(self, classname, row_limit, filter_):
+        # logger.info(f'Start QUERY: {classname}')
+        data = self.session.query(classname).order_by(classname.id).filter(filter_).limit(row_limit)
+        # logger.info(f'Return QUERY: {classname}')
         return data
