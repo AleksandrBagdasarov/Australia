@@ -12,6 +12,7 @@ class DataBase:
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(self.engine)
         self.session = self.Session()
+        logger.info('DATA BASE __init__')
 
     async def save_row(self, row: dict, classname) -> None:
         try:
@@ -26,5 +27,11 @@ class DataBase:
     def get_all_rows(self, classname):
         logger.info(f'Start QUERY: {classname}')
         data = self.session.query(classname).all()
+        logger.info(f'Return QUERY: {classname}')
+        return data
+
+    def get_rows(self, classname, row_limit):
+        logger.info(f'Start QUERY: {classname}')
+        data = self.session.query(classname).order_by(classname.id).limit(row_limit)
         logger.info(f'Return QUERY: {classname}')
         return data

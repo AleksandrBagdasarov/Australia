@@ -36,7 +36,7 @@ async def request(method: str,
                   headers: dict = DEFAULT_HEADERS,
                   **kwargs) -> Response:
     for _ in range(retries + 1):
-        logger.info(f'{method}: {url}')
+        logger.info(f'{method}: {proxies}, {url}')
         if proxies:
             async with httpx.AsyncClient(verify=False, timeout=timeout, headers=headers) as client:
                 response = await client.request(method, url, **kwargs)

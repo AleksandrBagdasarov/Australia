@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer, Float, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 Base = declarative_base()
@@ -20,17 +20,26 @@ class Suburbs_exception(Base):
     suburb_url = Column(String(1024), nullable=False)
 
 
-class SuburbsStats(Base):
-    __tablename__ = 'suburbs_stats'
-    # saburb = relationship('suburb', back_populates='suburbs_stats')
+class InvestorMetrics(Base):
+    __tablename__ = 'investor_metrics'
+    saburb = Column(Integer)
     id = Column(Integer, primary_key=True, autoincrement=True)
-    properties_available_for_rent = Column(Integer, nullable=True)
-    properties_available_for_sale = Column(Integer, nullable=True)
-    median_property_price_for_houses = Column(Integer, nullable=True)
-    median_property_prices_for_units = Column(Integer, nullable=True)
-    average_house_rent_per_week = Column(Integer, nullable=True)
-    average_house_rent_yield = Column(Integer, nullable=True)
-    average_unit_rent_per_week = Column(Integer, nullable=True)
-    average_unit_rent_yield = Column(Integer, nullable=True)
-    five_year_house_growth_rate = Column(Integer, nullable=True)
-    five_year_unit_growth_rate = Column(Integer, nullable=True)
+    property_types = Column(String(64), nullable=False)
+    bedrooms = Column(String(64), nullable=False)
+    median_sold_price = Column(Integer, nullable=True)
+    median_sold_price_five_years_ago = Column(Integer, nullable=True)
+    median_rental_price = Column(Integer, nullable=True)
+    rental_yield = Column(Float, nullable=True)
+    annual_growth = Column(Float, nullable=True)
+    rental_demand = Column(Float, nullable=True)
+    rental_properties = Column(Integer, nullable=True)
+    sold_properties = Column(Integer, nullable=True)
+    sold_properties_five_years_ago = Column(Integer, nullable=True)
+    polygon = Column(Text)
+    metro = Column(String(64), nullable=False)
+
+
+class InvestorMetricsExceptions(Base):
+    __tablename__ = 'investor_metrics_exceptions'
+    saburb = Column(Integer)
+    suburb_url = Column(String(1024), nullable=False)
