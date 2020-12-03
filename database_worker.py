@@ -7,8 +7,7 @@ from models import Base
 
 class DataBase:
 
-    def __init__(self, unused):
-        self.unused = unused
+    def __init__(self):
         self.engine = create_engine('postgresql+psycopg2://postgres:postgres@localhost/australia')
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(self.engine)

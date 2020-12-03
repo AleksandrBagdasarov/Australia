@@ -11,7 +11,7 @@ class Suburbs(Base):
     suburb = Column(String(64))
     state = Column(String(64))
     postcode = Column(String(64))
-    suburbs_stats = relationship('suburbs_stats', uselist=False, back_populates='suburb')
+    # suburbs_stats = relationship('suburbs_stats', uselist=False, back_populates='suburb')
 
 
 class Suburbs_exception(Base):
@@ -22,7 +22,7 @@ class Suburbs_exception(Base):
 
 class SuburbsStats(Base):
     __tablename__ = 'suburbs_stats'
-    saburb = relationship('suburb', back_populates='suburbs_stats')
+    # saburb = relationship('suburb', back_populates='suburbs_stats')
     id = Column(Integer, primary_key=True, autoincrement=True)
     properties_available_for_rent = Column(Integer, nullable=True)
     properties_available_for_sale = Column(Integer, nullable=True)
