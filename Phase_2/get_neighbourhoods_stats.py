@@ -1,5 +1,5 @@
 from fetcher import request
-from models import Suburbs, InvestorMetrics, Polygons, Suburbs_exception, InvestorMetricsExceptions
+from models import Suburbs, InvestorMetrics, Polygons, Suburbs_exception, InvestorMetricsExceptions, SuburbStateRatio
 import asyncio
 from database_worker import DataBase
 import urllib
@@ -10,7 +10,7 @@ from sqlalchemy import and_
 from time import sleep
 
 API_URL = 'https://investor-api.realestate.com.au/v2/states/{}/suburbs/{}.json?embed=suburb_geo'
-SUPLY_AND_DEMAND_URL = 'https://investor-api.realestate.com.au/v2/states/{}/suburbs/{}/postcodes/2026/supply_demand.json'
+SUPLY_AND_DEMAND_URL = 'https://investor-api.realestate.com.au/v2/states/{}/suburbs/{}/postcodes/{}/supply_demand.json'
 
 
 class PhaseTwo:
@@ -20,19 +20,19 @@ class PhaseTwo:
         logger.info('self.base = DataBase()')
 
     async def start(self):
-        for limit in range(10, 7050, 10):
+        for limit in range(10, 7060, 10):
             suburb_rows = self.base.get_rows(classname=Suburbs,
-                                              row_limit=limit,
-                                              filter_=and_(Suburbs.id < limit+1, Suburbs.id > limit-10))
+                                             row_limit=limit,
+                                             filter_=and_(Suburbs.id < limit + 1, Suburbs.id > limit - 10))
             for row in suburb_rows:
                 logger.info(f'Start: {row.id=}')
 
-            await self.get_data_from_phase_one(suburb_rows)
-
-            for x in range(5):
-                logger.info(f'sleep({x})')
+            # await self.get_data_from_phase_one(suburb_rows)
+            task = [self.get_suburb_state_ratio(row) for row in suburb_rows]
+            await asyncio.wait(task)
+            for x in range(-2, 0):
+                logger.info(f'sleep({str(x).strip("-")})')
                 sleep(1)
-
 
     async def get_data_from_phase_one(self, suburb_rows):
         task = [self.get_response_from_realestate_api(row.id,
@@ -44,26 +44,38 @@ class PhaseTwo:
                                                       ) for row in suburb_rows]
         logger.info('await asyncio.wait(task)')
         await asyncio.wait(task)
-        # for row in suburb_rows:
-        #     row_id = row.id
-        #     postcode = row.postcode
-        #     suburb = row.suburb
-        #     suburb_for_url = urllib.parse.quote(suburb.lower())
-        #     state = row.state
-        #     state_for_url = urllib.parse.quote(state.lower())
-        #     url = API_URL.format(state_for_url, suburb_for_url)
-        #     await InvestorMetrics.get_response_from_realestate_api(row_id, postcode, suburb, url)
+
+    async def get_suburb_state_ratio(self, row):
+        url = SUPLY_AND_DEMAND_URL.format(
+            urllib.parse.quote(row.state.lower()),
+            urllib.parse.quote(row.suburb.lower()),
+            row.postcode
+        )
+        r = await request('GET', url, proxies=RANDOM_PROXIES())
+
+        if r.status_code == 404:
+            logger.info(f'{404}, {url}')
+            return
+        json_response = json.loads(r.text)
+        await self.base.save_row(
+            {
+                'saburb_id': row.id,
+                'visits_per_property_of_suburb': json_response.get('suburb_ratio'),
+                'average_of_State': json_response.get('state_ratio'),
+                'url_api': url,
+            },
+            SuburbStateRatio
+        )
 
     async def get_response_from_realestate_api(self, row_id: int, postcode: str, suburb: str, url: str) -> None:
         r = await request('GET', url, proxies=RANDOM_PROXIES())
         if r.status_code == 404:
             logger.info(f'{404}, {url}')
-            return
+            await self.except_404_save(row_id)
         try:
             json_response = json.loads(r.text)
         except Exception as e:
             logger.debug(e)
-            await self.except_404_save(row_id)
             return
 
         first_key = f'{suburb.upper()}-{postcode}'

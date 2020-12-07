@@ -3,7 +3,6 @@ import random
 DB_CONNECTION_URL = 'postgresql+psycopg2://User:asfuasfo1adp8am@postgresdb1.accelerator-introlab.ml:5432/news'
 
 
-
 proxies = (
     '134.209.69.183',
     '149.56.1.48',

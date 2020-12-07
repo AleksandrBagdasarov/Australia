@@ -21,7 +21,8 @@ class DataBase:
             self.session.commit()
             logger.info(f'{row}')
         except Exception as e:
-            logger.debug(f'{e}')
+            logger.debug('already exist')
+            # logger.debug(f'{e}')
             self.session.rollback()
 
     def get_all_rows(self, classname):
