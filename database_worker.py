@@ -21,8 +21,7 @@ class DataBase:
             self.session.commit()
             logger.info(f'{row}')
         except Exception as e:
-            logger.debug('already exist')
-            # logger.debug(f'{e}')
+            logger.debug(f'{e}')
             self.session.rollback()
 
     def get_all_rows(self, classname):
@@ -32,7 +31,28 @@ class DataBase:
         return data
 
     def get_rows(self, classname, row_limit, filter_):
-        # logger.info(f'Start QUERY: {classname}')
-        data = self.session.query(classname).order_by(classname.id).filter(filter_).limit(row_limit)
-        # logger.info(f'Return QUERY: {classname}')
+        logger.info(f'Start QUERY: {classname}')
+        data = self.session.query(classname).filter(filter_).limit(row_limit)
         return data
+
+
+class RemoteDataBase:
+
+    def __init__(self):
+        self.engine = create_engine('postgresql+psycopg2://postgres:8NkN1qdiCu7VMd36XYEu'
+                                    '@database-1.cgzopzjcvpsf.ap-southeast-2.rds.amazonaws.com')
+        Base.metadata.create_all(self.engine)
+        self.Session = sessionmaker(self.engine)
+        self.session = self.Session()
+        logger.info('REMOTE DATA BASE __init__')
+
+    async def save_rows(self, rows):
+
+        try:
+            self.session.bulk_save_objects(rows)
+            self.session.commit()
+            logger.info(f'{rows}')
+        except Exception as e:
+            logger.debug(f'{e}')
+            self.session.rollback()
+
